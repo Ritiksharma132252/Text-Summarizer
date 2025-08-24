@@ -3,6 +3,8 @@ from textSummarizer.logging import logger
 from transformers import AutoTokenizer
 from datasets import load_dataset, load_from_disk
 from textSummarizer.entity import DataTransformationConfig
+from pathlib import Path
+from datasets import load_from_disk
 
 
 
@@ -24,10 +26,14 @@ class DataTransformation:
             'attention_mask': input_encodings['attention_mask'],
             'labels': target_encodings['input_ids']
         }
-    
 
     def convert(self):
-        dataset_samsum = load_from_disk(self.config.data_path)
-        dataset_samsum_pt = dataset_samsum.map(self.convert_examples_to_features, batched = True)
-        dataset_samsum_pt.save_to_disk(os.path.join(self.config.root_dir,"samsum_dataset"))
+        dataset_path = Path(self.config.data_path).resolve()
+        # Force Windows safe absolute path
+        dataset_path = dataset_path.as_posix()   # converts D:\... into D:/...
+        
+        print("Loading dataset from:", dataset_path)
+        
+        dataset_samsum = load_from_disk("file://" + str(dataset_path))
+        return dataset_samsum
 
